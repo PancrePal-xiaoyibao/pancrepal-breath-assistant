@@ -33,6 +33,18 @@
 - 🎙️ SMU-Ubicomp `OpenSpirometry` — UbiComp 论文：手机麦克风 + 涡旋哨测肺功能（Layer 2 首选路线）
 - 📈 `suyashkumar/OpenSpirometer` — 蓝牙肺量计 + App + 云趋势展示（架构参考）
 
+## 📜 开源许可
+
+本仓库采用 **《胰管家·呼吸助手社区公益许可协议》**（详见 [LICENSE](./LICENSE)）：
+
+- ✅ **允许**：公益、教育、科研目的免费使用、修改、分享（须**署名** + **相同方式共享**）
+- 🚫 **禁止**：未经授权将本项目（含衍生作品）用于**商业用途**（销售、收费服务/SaaS、商业 App、营利性机构商业运营等）
+- 🤝 **商业授权**：如需商用，须同时取得 **小胰宝社区** 与 **江苏省人民医院胰腺专病护理团队** 的**书面授权**（见 LICENSE §三/§八）
+
+> ⚠️ 本项目为**公益非商业许可**（source-available），非 OSI 定义的传统"开源许可"，商业使用受发起方书面授权约束。
+
+**商业授权申请**：请在小胰宝社区（[info.xiao-x-bao.com.cn](https://info.xiao-x-bao.com.cn)）提交商业用途说明，社区将联合江苏省人民医院胰腺专病护理团队评估并出具书面授权。
+
 ## 🤝 社区与链接
 
 - 关联看板：[PancrePal-xiaoyibao Project 2](https://github.com/orgs/PancrePal-xiaoyibao/projects/2)

@@ -180,6 +180,7 @@ PCM 帧流 ──► 预加重/降噪 ──► 短时能量包络 ──► 吹
 - 强度分映射：先用固定参考（如本机历史第 90 分位）做相对标定，Phase 2 再引入回归标定。
 
 ### 5.2 Layer 2/3 演进预留
+- **Layer 2 优先技术路线（推荐）：涡旋哨（vortex whistle）方案** —— 患者对 3D 打印哨子吹气，手机麦克风采集哨音，**由哨音频率映射气流速度**（而非直接测声强），可规避"距离/环境噪音干扰"的硬伤。已有开源实现与 UbiComp 论文可参考（见 §7.4.2）。
 - 后端预留 `assessment_engine` 抽象接口：`estimate() → {pef?, fev1?, confidence, evidence_ref}`，MVP 返回 `null + 趋势证据`，未来接入声学回归模型。
 - 预留临床对照数据导出（用于与峰流速仪/肺功能仪的验证研究）。
 
@@ -259,7 +260,7 @@ PCM 帧流 ──► 预加重/降噪 ──► 短时能量包络 ──► 吹
 | 录音 | `RecorderManager`（PCM 帧回调） | 关键：验证采样率/帧大小上限 |
 | 实时绘制 | Canvas 2D | 蜡烛/粒子动画 |
 | 信号处理 | 客户端 TS 实现 + 后端可选 Python 复算 | 特征提取双端一致 |
-| 后端 | Python（FastAPI）或 Node | 与组织现有 `miniapp-backend` 对齐 |
+| 后端 | Python（FastAPI）或 Node | 与组织现有 `miniapp-backend` 对齐；参考值计算可直接依赖 `@automate-medical/gli2012`（TS）或移植 rspiro（R），见 §7.4 |
 | 数据库 | 关系型（患者/测量/趋势）+ 时间序列趋势缓存 | 数据最小化存储 |
 | 部署 | 组织既有云/边缘基础设施（参考 `xiao-x-bao-tech-infra`） | |
 
@@ -275,6 +276,43 @@ PCM 帧流 ──► 预加重/降噪 ──► 短时能量包络 ──► 吹
 - 涉及患者健康数据（呼吸测量记录），须：最小化采集、去标识化（患者用院内 ID 映射，不存真实姓名/手机号于开放仓库）、访问控制（护士分级）、传输加密。
 - 展示授权机制：患者知情同意（小程序内一键授权说明）。
 - ⚠️ 医疗数据合规细则需法务/院内信息科确认（列入 §14 开放问题）。
+
+### 7.4 可借鉴的开源技术栈（前置参考）
+
+> 调研日期：2026-08-10（GitHub 检索）。以下开源项目按与本项目相关性排序，作为**直接复用 / 改造参考**。接入每一层遵循 `借鉴 → 改造 → 本地临床验证` 流程，勿直接照搬（医疗算法必须本地验证，见 §6.5）。
+
+#### 7.4.1 直接可复用（后端依赖）
+
+| 仓库 | 语言 | 用途 | 改造点 |
+|---|---|---|---|
+| [Automate-Medical/gli2012](https://github.com/Automate-Medical/gli2012)（npm: `@automate-medical/gli2012`） | TypeScript | **GLI-2012 全球多民族肺功能参考值方程**（3–95 岁，含东亚/中国人群），计算 FEV1/FVC/PEF 预测值与 z-score | 后端直接依赖；用于 Phase 2 起"与预测值对比"；需选对种族参数并做伦理/适用性标注 |
+| [thlytras/rspiro](https://github.com/thlytras/rspiro) | R | 多套参考值方程（GLI-2012 / GLI-2022 种族中立 / JRS-2014 / NHANES III / GLI-2017），计算预测值/LLN/z-score | 研究阶段做方程对比与本地验证；生产实现可移植为 Python/TS |
+
+#### 7.4.2 算法直接借鉴（手机麦克风 → 肺功能）
+
+| 仓库 | 语言 | 用途 | 借鉴点 |
+|---|---|---|---|
+| [SMU-Ubicomp-Lab/OpenSpirometry](https://github.com/SMU-Ubicomp-Lab/OpenSpirometry)（UbiComp 2016 Vortex Spirometry 论文配套） | Objective-C/iOS | 手机麦克风采集**涡旋哨**声学信号估算肺功能；含 `SpirometerEffortAnalyzer`（努力段检测 + 特征提取） | ① **涡旋哨物理原理**：哨音频率 ↔ 气流速度，3D 打印哨子 + 麦克风测频，规避"测声强受距离/环境噪音干扰"的硬伤——本项目 Layer 2 最值得优先验证的路线；② 麦克风权限、努力段检测、特征提取的工程实现 |
+| [SMU-Ubicomp-Lab/Vortex-Spirometry-UbiComp](https://github.com/SMU-Ubicomp-Lab/Vortex-Spirometry-UbiComp) | 论文数据/模型库 | 哨子 STL 文件、人体试验数据、波形生成器 | 哨子 3D 模型与标定数据可作 Phase 2 对照实验起点 |
+
+#### 7.4.3 架构参考（App + 云端 + 趋势展示）
+
+| 仓库 | 语言 | 用途 | 借鉴点 |
+|---|---|---|---|
+| [suyashkumar/OpenSpirometer](https://github.com/suyashkumar/OpenSpirometer) | Android + 嵌入式 + 云 | 蓝牙肺量计：App 展示 FEV1/FVC 随时间趋势并打场景标签（如"花粉"）定位触发源，数据云端存储 | ① 患者趋势展示交互模式；② "测量值随时间 + 场景标签"的数据模型 → 映射为"术后恢复趋势 + 护理备注" |
+| [COVID-19-electronic-health-system/PanFLUte](https://github.com/COVID-19-electronic-health-system/PanFLUte) | C / ESP32 固件 + Web | 开源肺量计硬件（测量吸呼气体量） | 若未来做"可信哨子/肺量计"硬件，固件与标定流程可参考；MVP 纯手机麦克风不依赖 |
+
+#### 7.4.4 产品 / 体验参考（游戏化反馈）
+
+| 仓库 | 语言 | 用途 | 借鉴点 |
+|---|---|---|---|
+| [daniel-pimenta-cc/breath_thingy](https://github.com/daniel-pimenta-cc/breath_thingy) | Flutter | 开源呼吸训练 App，纯动画、无广告无追踪 | 呼吸引导动画与"大字、低干扰"极简体验设计（老年患者友好）参考 |
+
+#### 7.4.5 信号处理方法参考（声学事件检测）
+
+呼吸音分析 / 咳嗽检测类学术开源（如 `sokea0510/Respiratory-Rate-Analysis`、HMM/CNN 咳嗽检测等）可作为**吹气段起止点检测、信噪比质控**的方法学参考；此类仅借鉴特征提取思路，不直接集成。
+
+> ⚠️ 医疗相关算法（涡旋哨、参考值方程）仅作"脚手架"，**必须在江苏省人民医院完成本地对照验证后**方可作为评估依据（§6.5）。
 
 ---
 

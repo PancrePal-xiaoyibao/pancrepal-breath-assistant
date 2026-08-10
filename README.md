@@ -24,6 +24,15 @@
 
 微信小程序（`RecorderManager` 麦克风帧采集 + Canvas 游戏画面）· Python/Node 后端 · 与社区 `miniapp-xyb` 生态对齐。
 
+## 🔗 可借鉴开源项目
+
+已调研一批**可直接复用/改造**的前置开源技术栈（手机麦克风肺功能评估、GLI-2012 参考值方程、开源肺量计、呼吸动画），详见 **[PRD §7.4 可借鉴的开源技术栈](./PRD.md#74-可借鉴的开源技术栈前置参考)**。
+
+精选 3 个：
+- 🎯 `@automate-medical/gli2012` — GLI-2012 多民族肺功能参考值方程（TS，支持中国人群），后端可直接依赖
+- 🎙️ SMU-Ubicomp `OpenSpirometry` — UbiComp 论文：手机麦克风 + 涡旋哨测肺功能（Layer 2 首选路线）
+- 📈 `suyashkumar/OpenSpirometer` — 蓝牙肺量计 + App + 云趋势展示（架构参考）
+
 ## 🤝 社区与链接
 
 - 关联看板：[PancrePal-xiaoyibao Project 2](https://github.com/orgs/PancrePal-xiaoyibao/projects/2)
